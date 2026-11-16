@@ -1,117 +1,122 @@
+class HashTable:
+    def __init__(self, size, method):
+        self.size = size
+        self.method = method
+        self.table = [None] * size
+
+    def hash1(self, key):
+        return sum(ord(ch) for ch in key) % self.size
+
+    def hash2(self, key):
+        return 1 + (
+            sum(ord(ch) for ch in key) % (self.size - 1)
+        )
+
+    def insert(self, name, phone):
+        index = self.hash1(name)
+        step = self.hash2(name)
+
+        for i in range(self.size):
+            if self.method == "linear":
+                pos = (index + i) % self.size
+            elif self.method == "quadratic":
+                pos = (index + i * i) % self.size
+            else:
+                pos = (index + i * step) % self.size
+
+            if self.table[pos] is None:
+                self.table[pos] = (name, phone)
+                print("Contact added successfully.")
+                return
+
+            if self.table[pos][0] == name:
+                self.table[pos] = (name, phone)
+                print("Contact updated successfully.")
+                return
+
+        print("Hash table is full or no free slot was found.")
+
+    def search(self, name):
+        index = self.hash1(name)
+        step = self.hash2(name)
+
+        for i in range(self.size):
+            if self.method == "linear":
+                pos = (index + i) % self.size
+            elif self.method == "quadratic":
+                pos = (index + i * i) % self.size
+            else:
+                pos = (index + i * step) % self.size
+
+            entry = self.table[pos]
+
+            if entry is None:
+                return None
+
+            if entry[0] == name:
+                return entry[1]
+
+        return None
+
+    def display(self):
+        print("\nIndex | Name | Telephone Number")
+        for i, entry in enumerate(self.table):
+            if entry is None:
+                print(i, "| Empty")
+            else:
+                print(i, "|", entry[0], "|", entry[1])
+
+
 size = int(input("Enter hash table size (minimum 2): "))
+if size < 2:
+    print("Table size must be atleast 2.")
+else:
+    print("1. Linear Probing")
+    print("2. Quadratic Probing")
+    print("3. Double Hashing")
+    choice = input("Choose collision method (1/2/3): ")
 
-# Create hash table
-hash_table = [None] * size
+    methods = {
+        "1": "linear",
+        "2": "quadratic",
+        "3": "double"
+    }
 
-print("1. Linear Probing")
-print("2. Quadratic Probing")
-print("3. Double Hashing")
-
-method = int(input("Choose collision method (1/2/3): "))
-
-
-# Hash function
-def hash_function(name):
-    return sum(ord(ch) for ch in name) % size
-
-
-# Second hash function for double hashing
-def second_hash(name):
-    return 1 + (sum(ord(ch) for ch in name) % (size - 1))
-
-
-# Add contact
-def add_contact():
-    name = input("Enter client name: ")
-    phone = input("Enter telephone number: ")
-
-    h = hash_function(name)
-
-    for i in range(size):
-
-        if method == 1:
-            index = (h + i) % size
-
-        elif method == 2:
-            index = (h + i * i) % size
-
-        elif method == 3:
-            index = (h + i * second_hash(name)) % size
-
-        else:
-            print("Invalid collision method.")
-            return
-
-        if hash_table[index] is None:
-            hash_table[index] = (name, phone)
-            print("Contact added successfully.")
-            return
-
-    print("Hash table is full!")
-
-
-# Search contact
-def search_contact():
-    name = input("Enter client name to search: ")
-    h = hash_function(name)
-
-    for i in range(size):
-
-        if method == 1:
-            index = (h + i) % size
-
-        elif method == 2:
-            index = (h + i * i) % size
-
-        else:
-            index = (h + i * second_hash(name)) % size
-
-        contact = hash_table[index]
-
-        if contact is None:
-            break
-
-        if contact[0].lower() == name.lower():
-            print("Telephone Number:", contact[1])
-            return
-
-    print("Contact not found.")
-
-
-# Display directory
-def display_directory():
-    print("\nIndex | Name | Telephone Number")
-
-    for i in range(size):
-        if hash_table[i] is None:
-            print(i, "| Empty")
-        else:
-            name, phone = hash_table[i]
-            print(i, "|", name, "|", phone)
-
-
-# Main menu
-while True:
-
-    print("\n1. Add Contact")
-    print("2. Search Contact")
-    print("3. Display Directory")
-    print("4. Exit")
-
-    choice = int(input("Enter choice: "))
-
-    if choice == 1:
-        add_contact()
-
-    elif choice == 2:
-        search_contact()
-
-    elif choice == 3:
-        display_directory()
-
-    elif choice == 4:
-        print("Exiting telephone directory.")
-        break
-
-    else:
+    if choice not in methods:
         print("Invalid choice.")
+    else:
+        ht = HashTable(size, methods[choice])
+
+        while True:
+            print("\n1. Add Contact")
+            print("2. Search Contact")
+            print("3. Display Directory")
+            print("4. Exit")
+
+            option = input("Enter choice: ")
+
+            if option == "1":
+                name = input("Enter client name: ").strip()
+                phone = input("Enter telephone number: ").strip()
+                if name and phone:
+                    ht.insert(name, phone)
+                else:
+                    print("Name and phone cannot be empty.")
+
+            elif option == "2":
+                name = input("Enter client name to search: ").strip()
+                phone = ht.search(name)
+                if phone is not None:
+                    print("Telephone number:", phone)
+                else:
+                    print("Contact not found.")
+
+            elif option == "3":
+                ht.display()
+
+            elif option == "4":
+                print("Exiting telephone directory.")
+                break
+
+            else:
+                print("Invalid choice.")
