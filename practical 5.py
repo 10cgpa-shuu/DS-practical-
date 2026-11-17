@@ -6,96 +6,83 @@ class Node:
         self.next = None
 
 
-class DoublyLinkedList:
+class Appointment:
     def __init__(self):
         self.head = None
 
-    # Insert appointment at the end
-    def book_appointment(self, time):
-
+    # Book Appointment
+    def book(self, time):
         if time < 9 or time > 17:
-            print("Invalid time! Working hours are 9 AM to 5 PM.")
+            print("Invalid time! Enter between 9 and 17.")
             return
 
-        if self.search(time):
-            print("This appointment slot is already booked!")
-            return
+        temp = self.head
+        while temp:
+            if temp.time == time:
+                print("Slot already booked!")
+                return
+            temp = temp.next
 
-        new_node = Node(time)
+        new = Node(time)
 
         if self.head is None:
-            self.head = new_node
+            self.head = new
         else:
             temp = self.head
-
-            while temp.next is not None:
+            while temp.next:
                 temp = temp.next
 
-            temp.next = new_node
-            new_node.prev = temp
+            temp.next = new
+            new.prev = temp
 
         print("Appointment booked successfully!")
 
-    # Search for an appointment
-    def search(self, time):
+    # Display Free Slots
+    def free_slots(self):
+        print("Available Slots:")
+
+        for t in range(9, 18):
+            temp = self.head
+            found = False
+
+            while temp:
+                if temp.time == t:
+                    found = True
+                    break
+                temp = temp.next
+
+            if not found:
+                print(t, "to", t + 1)
+
+    # Display Appointments
+    def display(self):
         temp = self.head
 
-        while temp is not None:
-            if temp.time == time:
-                return True
-            temp = temp.next
-
-        return False
-
-    # Display all booked appointments
-    def display(self):
-        if self.head is None:
+        if temp is None:
             print("No appointments booked.")
             return
 
-        temp = self.head
-        print("\nBooked Appointments:")
-
-        while temp is not None:
-            print(temp.time, "to", temp.time + 1, "PM/AM (hour slot)")
+        print("Booked Appointments:")
+        while temp:
+            print(temp.time, "to", temp.time + 1)
             temp = temp.next
 
-    # Display free appointment slots
-    def display_free_slots(self):
-        print("\nAvailable Appointment Slots:")
-
-        found = False
-
-        for time in range(9, 17):
-            if not self.search(time):
-                print(time, ":00 -", time + 1, ":00")
-                found = True
-
-        if not found:
-            print("No free slots available.")
-
-    # Cancel appointment
-    def cancel_appointment(self, time):
-
-        if time < 9 or time >= 17:
-            print("Invalid cancellation time!")
-            return
-
-        if not self.search(time):
-            print("No appointment found at this time!")
-            return
-
+    # Cancel Appointment
+    def cancel(self, time):
         temp = self.head
 
-        while temp is not None:
-            if temp.time == time:
+        if time < 9 or time > 17:
+            print("Invalid time!")
+            return
 
-                if temp.prev is not None:
+        while temp:
+            if temp.time == time:
+                if temp.prev:
                     temp.prev.next = temp.next
                 else:
                     self.head = temp.next
 
-                if temp.next is not None:
+                if temp.next:
                     temp.next.prev = temp.prev
 
                 print("Appointment cancelled successfully!")
@@ -103,116 +90,101 @@ class DoublyLinkedList:
 
             temp = temp.next
 
-    # Sort appointments using data swapping
-    def sort_by_data(self):
+        print("Appointment not found!")
 
-        if self.head is None:
-            print("No appointments to sort.")
-            return
+    # Sort using Data Swapping
+    def sort_data(self):
+        temp = self.head
 
+        while temp:
+            current = temp.next
+
+            while current:
+                if temp.time > current.time:
+                    temp.time, current.time = current.time, temp.time
+
+                current = current.next
+
+            temp = temp.next
+
+        print("Sorted using data swapping.")
+
+    # Sort using Pointer Manipulation
+    def sort_pointer(self):
+        sorted_head = None
         current = self.head
 
-        while current is not None:
-            index = current.next
-
-            while index is not None:
-                if current.time > index.time:
-                    current.time, index.time = index.time, current.time
-
-                index = index.next
-
-            current = current.next
-
-        print("Appointments sorted using data swapping.")
-
-    # Sort appointments using pointer manipulation
-    def sort_by_pointer(self):
-
-        if self.head is None or self.head.next is None:
-            print("List is already sorted.")
-            return
-
-        current = self.head.next
-
-        while current is not None:
-
+        while current:
             next_node = current.next
-            temp = current.prev
+            current.prev = None
+            current.next = None
 
-            # Find correct position
-            while temp is not None and temp.time > current.time:
-                temp = temp.prev
+            if sorted_head is None:
+                sorted_head = current
 
-            # Remove current node from its position
-            if current.prev is not None:
-                current.prev.next = current.next
+            elif current.time < sorted_head.time:
+                current.next = sorted_head
+                sorted_head.prev = current
+                sorted_head = current
 
-            if current.next is not None:
-                current.next.prev = current.prev
-
-            # Insert at beginning
-            if temp is None:
-                current.prev = None
-                current.next = self.head
-                self.head.prev = current
-                self.head = current
-
-            # Insert after temp
             else:
-                current.prev = temp
-                current.next = temp.next
+                temp = sorted_head
 
-                if temp.next is not None:
+                while temp.next and temp.next.time < current.time:
+                    temp = temp.next
+
+                current.next = temp.next
+                current.prev = temp
+
+                if temp.next:
                     temp.next.prev = current
 
                 temp.next = current
 
             current = next_node
 
-        print("Appointments sorted using pointer manipulation.")
+        self.head = sorted_head
+        print("Sorted using pointer manipulation.")
 
 
 # Main Program
-dll = DoublyLinkedList()
+a = Appointment()
 
 while True:
-
-    print("\n========== APPOINTMENT SCHEDULING ==========")
+    print("\n--- APPOINTMENT SCHEDULING ---")
     print("1. Display Free Slots")
     print("2. Book Appointment")
-    print("3. Display Booked Appointments")
-    print("4. Sort by Time (Data Swapping)")
-    print("5. Cancel Appointment")
-    print("6. Sort by Time (Pointer Manipulation)")
+    print("3. Display Appointments")
+    print("4. Cancel Appointment")
+    print("5. Sort using Data Swapping")
+    print("6. Sort using Pointer Manipulation")
     print("7. Exit")
 
     choice = int(input("Enter your choice: "))
 
     if choice == 1:
-        dll.display_free_slots()
+        a.free_slots()
 
     elif choice == 2:
-        time = int(input("Enter appointment time (9 to 16): "))
-        dll.book_appointment(time)
+        t = int(input("Enter appointment time (9-17): "))
+        a.book(t)
 
     elif choice == 3:
-        dll.display()
+        a.display()
 
     elif choice == 4:
-        dll.sort_by_data()
-        dll.display()
+        t = int(input("Enter time to cancel: "))
+        a.cancel(t)
 
     elif choice == 5:
-        time = int(input("Enter appointment time to cancel: "))
-        dll.cancel_appointment(time)
+        a.sort_data()
 
     elif choice == 6:
-        dll.sort_by_pointer()
-        dll.display()
+        a.sort_pointer()
 
     elif choice == 7:
-        print("Thank you for using Appointment Scheduling System!")
+        print("Thank you!")
         break
 
     else:
-        print("Invalid choice! Please try again.")
+        print("Invalid choice!")
